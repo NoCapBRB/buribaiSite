@@ -1,6 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 头像渲染 */ -}}
+    {{- /* 头像部分 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -37,10 +37,21 @@
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- /* 关键修改：直接使用 $key，不转小写，以匹配 Wechat.svg */ -}}
+                    {{- /* 尝试直接用原始 $key 寻找 Wechat.svg */ -}}
                     {{- $svgPath := printf "svg/%v.svg" $key -}}
                     {{- $customSvg := resources.Get $svgPath -}}
                     
                     {{- if $customSvg -}}
+                        {{- /* 只有找到文件才读取 .Content，防止报错 */ -}}
                         <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                            <span class="custom-icon-box
+                            <span class="custom-icon-box {{ $key | lower }}">
+                                {{- $customSvg.Content | safeHTML -}}
+                            </span>
+                        </a>
+                    {{- else -}}
+                        {{- /* 如果找不到，走内置 Email 逻辑 */ -}}
+                        {{- $keyLower := $key | lower -}}
+                        {{- $social := index $socialMap $keyLower | default dict -}}
+                        {{- if reflect.IsMap $value -}}
+                            {{- $social = merge $social $value -}}
+                        {{- else
