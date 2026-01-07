@@ -37,26 +37,52 @@
         </div>
     {{- end -}}
 
-    {{- if $profile.social -}}
+{{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
+            {{- $socialArr := slice -}}
+            
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
                     {{- $keyLower := $key | lower -}}
-                    {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
-                    {{- $customSvg := resources.Get $svgPath -}}
-                    {{- if $customSvg -}}
-                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                            <span class="custom-icon-box {{ $keyLower }}">
-                                {{- $customSvg.Content | safeHTML -}}
-                            </span>
-                        </a>
+                    {{- $social := index $socialMap $keyLower | default dict -}}
+                    
+                    {{- /* 注入参数 */ -}}
+                    {{- if reflect.IsMap $value -}}
+                        {{- $social = merge $social $value -}}
+                    {{- else if ne $value true -}}
+                        {{- $social = dict "Id" $value | merge $social -}}
                     {{- end -}}
+
+                    {{- /* 核心：强制为自定义图标指定名称以便读取 SVG */ -}}
+                    {{- if or (eq $keyLower "xhs") (eq $keyLower "wechat") -}}
+                        {{- $social = dict "Icon" (dict "Name" $keyLower) | merge $social -}}
+                    {{- end -}}
+                    
+                    {{- $socialArr = $socialArr | append $social -}}
+                {{- end -}}
+            {{- end -}}
+
+            {{- /* 渲染所有社交图标 */ -}}
+            {{- range sort $socialArr "Weight" -}}
+                {{- $iconName := .Icon.Name | default (.Title | lower) -}}
+                {{- $svgPath := printf "svg/%v.svg" $iconName -}}
+                {{- $customSvg := resources.Get $svgPath -}}
+
+                {{- if $customSvg -}}
+                    {{- /* 自定义图标渲染 */ -}}
+                    <a href="{{ if .Prefix }}{{ .Prefix }}{{ .Id }}{{ else if .Url }}{{ .Url }}{{ else }}{{ .Id }}{{ end }}" title="{{ .Title | default $iconName }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
+                        <span class="custom-icon-box {{ $iconName }}">
+                            {{- $customSvg.Content | safeHTML -}}
+                        </span>
+                    </a>
+                {{- else -}}
+                    {{- /* 主题内置图标渲染（如 Email） */ -}}
+                    {{- partial "plugin/social.html" . -}}
                 {{- end -}}
             {{- end -}}
         </div>
     {{- end -}}
-</div>
 
 <style>
     .home-profile {
