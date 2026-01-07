@@ -413,33 +413,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     # 文章页面的分享信息设置
     [params.page.share]
       enable = false
-      Twitter = true
-      Facebook = true
-      Linkedin = false
-      Whatsapp = false
-      Pinterest = false
-      Tumblr = false
-      HackerNews = true
-      Reddit = false
-      VK = false
-      Buffer = false
-      Xing = false
-      Line = true
-      Instapaper = false
-      Pocket = false
-      Digg = false
-      Stumbleupon = false
-      Flipboard = false
-      Weibo = true
-      Renren = false
-      Myspace = false
-      Blogger = false
-      Baidu = false
-      Odnoklassniki = false
-      Evernote = false
-      Skype = false
-      Trello = false
-      Mix = false
+  
     # Comment config
     # 评论系统设置
     [params.page.comment]
@@ -580,11 +554,6 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     # Telegram = "xxxx"
     # Bilibili = ""
     Email = "NoCapBRB@iCloud.com"
-    # Resume = "" #goo.gl id
-    # xda = ""
-    # kaggle = ""
-    # discord = ""
-    # RSS = true
     [params.social.xhs]
         id = "55fa010667bc65702d8d25e1"
         prefix = "https://www.xiaohongshu.com/user/profile/"
@@ -593,7 +562,6 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
         id = "LlT3rtsId62xkkQSgIY37Q"
         prefix = "https://mp.weixin.qq.com/s/"
         title = "微信"
-  
 
   # TypeIt config
   # TypeIt 配置
