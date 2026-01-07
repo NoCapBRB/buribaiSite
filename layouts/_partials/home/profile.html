@@ -1,12 +1,13 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 1. 头像 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- if $avatar -}}
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
             {{- with index $menus 0 -}}
-                <a href="{{ .URL | relLangURL }}">{{- dict "Src" $avatar | partial "plugin/image.html" -}}</a>
+                <a href="{{ .URL | relLangURL }}">
+                    {{- dict "Src" $avatar | partial "plugin/image.html" -}}
+                </a>
             {{- else -}}
                 {{- dict "Src" $avatar | partial "plugin/image.html" -}}
             {{- end -}}
@@ -15,7 +16,6 @@
 
     <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
-    {{- /* 2. 副标题 */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -28,36 +28,21 @@
         </div>
     {{- end -}}
 
-    {{- /* 3. 社交图标 (对齐强化版) */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
                     {{- $keyLower := $key | lower -}}
-                    {{- $svgPath := printf "svg/%v.svg" $key -}}
+                    {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
                     {{- $customSvg := resources.Get $svgPath -}}
-                    {{- if not $customSvg -}}
-                        {{- $customSvg = resources.Get (printf "svg/%v.svg" $keyLower) -}}
+                    {{- if $customSvg -}}
+                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
+                            <span class="custom-icon-box {{ $keyLower }}">
+                                {{- $customSvg.Content | safeHTML -}}
+                            </span>
+                        </a>
                     {{- end -}}
-
-                    <div class="icon-wrapper">
-                        {{- if $customSvg -}}
-                            <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me">
-                                <span class="custom-icon {{ $keyLower }}">
-                                    {{- $customSvg.Content | safeHTML -}}
-                                </span>
-                            </a>
-                        {{- else -}}
-                            {{- $social := index $socialMap $keyLower | default dict -}}
-                            {{- if reflect.IsMap $value -}}
-                                {{- $social = merge $social $value -}}
-                            {{- else if ne $value true -}}
-                                {{- $social = dict "Id" $value | merge $social -}}
-                            {{- end -}}
-                            {{- partial "plugin/social.html" $social -}}
-                        {{- end -}}
-                    </div>
                 {{- end -}}
             {{- end -}}
         </div>
@@ -65,58 +50,40 @@
 </div>
 
 <style>
-    /* 1. 社交链接容器：确保图标行内居中 */
+    .home-profile {
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+    }
     .links {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 20px;
+        gap: 22px;
         margin-top: 1.2rem;
+        flex-wrap: wrap;
     }
-
-    /* 2. 统一图标外框：不管是什么图标，外框必须一样大 */
-    .icon-wrapper {
-        display: flex;
+    .social-icon-link {
+        display: inline-flex !important;
         align-items: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
+        transition: transform 0.2s ease-in-out !important;
     }
+    .social-icon-link:hover { transform: scale(1.2) !important; }
+    .social-icon-link i { font-size: 2.2rem !important; }
 
-    /* 3. 修正主题自带的 FontAwesome 邮箱图标 */
-    .icon-wrapper .social-icon i {
-        font-size: 2.2rem !important; /* 强制拉大邮箱图标 */
-        display: block;
-        line-height: 2.5rem;
-    }
-
-    /* 4. 修正自定义 SVG 图标 (微信/小红书) */
-    .custom-icon {
+    .custom-icon-box {
         display: flex;
-        width: 100%;
-        height: 100%;
+        width: 2.6rem;
+        height: 2.6rem;
         fill: currentColor;
-        align-items: center;
-        justify-content: center;
     }
-
-    .custom-icon svg {
-        width: 2.2rem; /* 微信宽度与邮箱一致 */
-        height: auto;
+    .custom-icon-box svg { width: 100%; height: auto; }
+    
+    /* 严格维持你 17:30 的缩放倍数 */
+    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { 
+        transform: scale(2.4) !important; 
+        transform-origin: center !important; 
     }
-
-    /* 5. 针对小红书单独放大，因为它的 SVG 比例通常很小 */
-    .custom-icon.xhs svg {
-        transform: scale(2.2); 
-        transform-origin: center;
-    }
-
-    .icon-wrapper a {
-        text-decoration: none;
-        transition: transform 0.2s;
-    }
-
-    .icon-wrapper a:hover {
-        transform: scale(1.15);
+    .custom-icon-box.wechat svg { 
+        transform: scale(1.15) !important; 
     }
 </style>
