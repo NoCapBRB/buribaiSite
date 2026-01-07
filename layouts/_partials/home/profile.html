@@ -1,39 +1,41 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
+    {{- /* 1. 头像 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- if $avatar -}}
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
             {{- with index $menus 0 -}}
-                <a href="{{ .URL | relLangURL }}">
-                    {{- dict "Src" $avatar | partial "plugin/image.html" -}}
-                </a>
+                <a href="{{ .URL | relLangURL }}"><img src="{{ $avatar }}" alt="Avatar"></a>
             {{- else -}}
-                {{- dict "Src" $avatar | partial "plugin/image.html" -}}
+                <img src="{{ $avatar }}" alt="Avatar">
             {{- end -}}
         </div>
     {{- end -}}
 
+    {{- /* 2. 标题 */ -}}
     <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
-    {{- with $profile.subtitle -}}
+    {{- /* 3. 副标题 (Subtitle) - 重新加固逻辑 */ -}}
+    {{- if $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
-                {{- $id := dict "Content" . "Scratch" $.Scratch | partial "function/id.html" -}}
+                {{- $id := dict "Content" $profile.subtitle "Scratch" $.Scratch | partial "function/id.html" -}}
                 <div id="{{ $id }}" class="typeit"></div>
                 {{- dict $id (slice $id) | dict "typeitMap" | merge ($.Scratch.Get "this") | $.Scratch.Set "this" -}}
             {{- else -}}
-                {{- . | safeHTML -}}
+                {{- $profile.subtitle | safeHTML -}}
             {{- end -}}
         </div>
     {{- end -}}
 
-    {{- if $profile.social -}}
+    {{- /* 4. 社交图标 (Wechat, Xhs, Email) */ -}}
+    {{- if .Site.Params.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- /* 尝试获取 SVG，兼容 Wechat.svg 和 xhs.svg */ -}}
+                    {{- /* 核心：尝试匹配 Wechat.svg 或 xhs.svg */ -}}
                     {{- $svgPath := printf "svg/%v.svg" $key -}}
                     {{- $customSvg := resources.Get $svgPath -}}
                     {{- if not $customSvg -}}
@@ -41,15 +43,15 @@
                     {{- end -}}
 
                     {{- if $customSvg -}}
-                        {{- /* 如果有文件，渲染自定义图标 (微信、小红书) */ -}}
                         <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
                             <span class="custom-icon-box {{ $key | lower }}">
                                 {{- $customSvg.Content | safeHTML -}}
                             </span>
                         </a>
                     {{- else -}}
-                        {{- /* 如果没文件，渲染内置图标 (邮箱) */ -}}
-                        {{- $social := index $socialMap ($key | lower) | default dict -}}
+                        {{- /* 如果没有本地SVG，渲染内置邮箱 */ -}}
+                        {{- $keyLower := $key | lower -}}
+                        {{- $social := index $socialMap $keyLower | default dict -}}
                         {{- if reflect.IsMap $value -}}
                             {{- $social = merge $social $value -}}
                         {{- else if ne $value true -}}
@@ -66,41 +68,22 @@
 </div>
 
 <style>
-    .home-profile {
-        padding: 0 !important;
-        margin-bottom: 2rem !important;
-    }
+    .home-profile { padding: 0 !important; margin-bottom: 2rem !important; text-align: center; }
+    .home-avatar img { width: 120px; height: 120px; border-radius: 50% !important; object-fit: cover; }
+    .home-title { font-size: 2rem; margin: 1rem 0 0.5rem; }
+    .home-subtitle { font-size: 1.2rem; color: #666; margin-bottom: 1rem; }
+    
     .links {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        /* 间距调小一点点，让它们更亲密 */
-        gap: 15px;
-        margin-top: 1.2rem;
-        flex-wrap: wrap;
+        display: flex; justify-content: center; align-items: center;
+        gap: 18px; margin-top: 1rem; flex-wrap: wrap;
     }
-    .social-icon-link {
-        display: inline-flex !important;
-        align-items: center;
-        transition: transform 0.2s ease-in-out !important;
-    }
-    .social-icon-link:hover { transform: scale(1.2) !important; }
-
-    .custom-icon-box {
-        display: flex;
-        width: 2.2rem;
-        height: 2.2rem;
-        fill: currentColor;
-    }
+    .social-icon-link { display: inline-flex !important; transition: transform 0.2s; }
+    .social-icon-link:hover { transform: scale(1.15) !important; }
+    
+    .custom-icon-box { display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; }
     .custom-icon-box svg { width: 100%; height: auto; }
     
-    /* 小红书缩放 */
-    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { 
-        transform: scale(2.4) !important; 
-        transform-origin: center !important; 
-    }
-    /* 微信缩放 */
-    .custom-icon-box.wechat svg { 
-        transform: scale(1.15) !important; 
-    }
+    /* 缩放控制 */
+    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { transform: scale(2.4) !important; transform-origin: center !important; }
+    .custom-icon-box.wechat svg { transform: scale(1.15) !important; }
 </style>
