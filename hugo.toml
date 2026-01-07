@@ -255,7 +255,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     icp = ""
     # license info (HTML format is supported)
     # 许可协议信息 (支持 HTML 格式)
-    license= ""
+    license= " Powered by Cloudflare & Hugo"
 
   # Section (all posts) page config
   # Section (所有文章) 页面配置
@@ -395,7 +395,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     # Social share links in post page
     # 文章页面的分享信息设置
     [params.page.share]
-      enable = true
+      enable = false
       Twitter = true
       Facebook = true
       Linkedin = false
