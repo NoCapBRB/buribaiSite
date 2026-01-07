@@ -36,12 +36,25 @@
                     {{- $keyLower := $key | lower -}}
                     {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
                     {{- $customSvg := resources.Get $svgPath -}}
+                    
                     {{- if $customSvg -}}
+                        {{- /* 1. 优先渲染你自定义的微信和小红书 */ -}}
                         <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
                             <span class="custom-icon-box {{ $keyLower }}">
                                 {{- $customSvg.Content | safeHTML -}}
                             </span>
                         </a>
+                    {{- else -}}
+                        {{- /* 2. 如果没找到自定义 SVG，就去渲染内置的 Email */ -}}
+                        {{- $social := index $socialMap $keyLower | default dict -}}
+                        {{- if reflect.IsMap $value -}}
+                            {{- $social = merge $social $value -}}
+                        {{- else if ne $value true -}}
+                            {{- $social = dict "Id" $value | merge $social -}}
+                        {{- end -}}
+                        {{- if $social -}}
+                            {{- partial "plugin/social.html" $social -}}
+                        {{- end -}}
                     {{- end -}}
                 {{- end -}}
             {{- end -}}
