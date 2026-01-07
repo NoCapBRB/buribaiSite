@@ -75,10 +75,27 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
         identifier = "unknown-six"
         pre = ""
         post = ""
-        name = "代行"
+        name = "待定1"
         url = "/about/"
         title = ""
         weight = 6
+      [[languages.zh-cn.menu.main]]
+        identifier = "unknown-se"
+        pre = ""
+        post = ""
+        name = "待定2"
+        url = "/about/"
+        title = ""
+        weight = 7
+      [[languages.zh-cn.menu.main]]
+        identifier = "unknown-ei"
+        pre = ""
+        post = ""
+        name = "待定3"
+        url = "/about/"
+        title = ""
+        weight = 8        
+        
     [languages.zh-cn.pagination]
       # 默认每页列表显示的文章数目
       pagerSize = 12
