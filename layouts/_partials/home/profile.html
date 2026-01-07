@@ -1,5 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
+    {{- /* 头像渲染逻辑 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -37,50 +38,34 @@
         </div>
     {{- end -}}
 
+    {{- /* 社交图标渲染逻辑：支持内置邮箱 + 自定义微信 */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
-            {{- $socialArr := slice -}}
             {{- range $key, $value := .Site.Params.social -}}
-                {{- $social := $key | lower | index $socialMap | default dict -}}
                 {{- if $value -}}
-                    {{- if reflect.IsMap $value -}}
-                        {{- with $value.weight -}}
-                            {{- $social = dict "Weight" . | merge $social -}}
+                    {{- $keyLower := $key | lower -}}
+                    {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
+                    {{- $customSvg := resources.Get $svgPath -}}
+                    
+                    {{- if $customSvg -}}
+                        {{- /* 如果本地 assets/svg 下有 wechat.svg，直接渲染 */ -}}
+                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer" class="social-icon-link">
+                            <span class="custom-icon-box {{ $keyLower }}">
+                                {{- $customSvg.Content | safeHTML -}}
+                            </span>
+                        </a>
+                    {{- else -}}
+                        {{- /* 否则走主题默认逻辑显示 Email */ -}}
+                        {{- $social := $keyLower | index $socialMap | default dict -}}
+                        {{- if reflect.IsMap $value -}}
+                            {{- $social = merge $social $value -}}
+                        {{- else if ne $value true -}}
+                            {{- $social = dict "Id" $value | merge $social -}}
                         {{- end -}}
-                        {{- with $value.prefix -}}
-                            {{- $social = dict "Prefix" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.template -}}
-                            {{- $social = dict "Template" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.id -}}
-                            {{- $social = dict "Id" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.url -}}
-                            {{- $social = dict "Url" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.title -}}
-                            {{- $social = dict "Title" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.newtab -}}
-                            {{- $social = dict "Newtab" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.icon -}}
-                            {{- $social = dict "Icon" . | merge $social -}}
-                        {{- end -}}
-                    {{- else if ne $value true -}}
-                        {{- $social = dict "Id" $value | merge $social -}}
+                        {{- partial "plugin/social.html" $social -}}
                     {{- end -}}
-                    {{- if $social.Icon.Simpleicons -}}
-                        {{- $prefix := ($.Scratch.Get "cdn" | default dict).simpleIconsPrefix -}}
-                        {{- $social = dict "Prefix" $prefix | dict "Icon" | merge $social -}}
-                    {{- end -}}
-                    {{- $socialArr = $socialArr | append $social -}}
                 {{- end -}}
-            {{- end -}}
-            {{- range sort $socialArr "Weight" -}}
-                {{- partial "plugin/social.html" . -}}
             {{- end -}}
         </div>
     {{- end -}}
@@ -91,3 +76,35 @@
         </h3>
     {{- end -}}
 </div>
+
+<style>
+    /* 强制图标并列居中 */
+    .links {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 22px; /* 图标之间的间距 */
+        margin-top: 1.2rem;
+        flex-wrap: wrap;
+    }
+    .social-icon-link {
+        display: inline-flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+    }
+    .social-icon-link:hover {
+        transform: scale(1.15);
+    }
+    /* 自定义微信图标的尺寸与缩放 */
+    .custom-icon-box {
+        display: flex;
+        width: 1.8rem; /* 匹配内置图标大小 */
+        height: 1.8rem;
+        fill: currentColor;
+    }
+    .custom-icon-box svg {
+        width: 100%;
+        height: auto;
+        transform: scale(1.1); /* 微信图标微调 */
+    }
+</style>
