@@ -1,67 +1,122 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
     {{- /* 1. 头像 */ -}}
-    <div class="home-avatar">
-        <a href="/"><img src="{{ $profile.avatarURL | relURL }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;"></a>
-    </div>
-
-    {{- /* 2. 标题 */ -}}
-    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
-
-    {{- /* 3. 副标题 (Subtitle) */ -}}
-    {{- if $profile.subtitle -}}
-        <div class="home-subtitle" style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">
-            {{- if $profile.typeit -}}
-                {{- $id := dict "Content" $profile.subtitle "Scratch" $.Scratch | partial "function/id.html" -}}
-                <div id="{{ $id }}" class="typeit"></div>
-                {{- dict $id (slice $id) | dict "typeitMap" | merge ($.Scratch.Get "this") | $.Scratch.Set "this" -}}
+    {{- $avatar := $profile.avatarURL -}}
+    {{- if $avatar -}}
+        <div class="home-avatar">
+            {{- $menus := $.Site.Menus.main | default slice -}}
+            {{- with index $menus 0 -}}
+                <a href="{{ .URL | relLangURL }}">{{- dict "Src" $avatar | partial "plugin/image.html" -}}</a>
             {{- else -}}
-                {{- $profile.subtitle | safeHTML -}}
+                {{- dict "Src" $avatar | partial "plugin/image.html" -}}
             {{- end -}}
         </div>
     {{- end -}}
 
-    {{- /* 4. 社交图标：强制手动并排 */ -}}
-    <div class="links" style="display: flex; justify-content: center; align-items: center; gap: 18px;">
-        
-        {{- /* A. 邮箱 (主题内置) */ -}}
-        {{- with .Site.Params.social.Email -}}
+    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
+
+    {{- /* 2. 副标题 */ -}}
+    {{- with $profile.subtitle -}}
+        <div class="home-subtitle">
+            {{- if $profile.typeit -}}
+                {{- $id := dict "Content" . "Scratch" $.Scratch | partial "function/id.html" -}}
+                <div id="{{ $id }}" class="typeit"></div>
+                {{- dict $id (slice $id) | dict "typeitMap" | merge ($.Scratch.Get "this") | $.Scratch.Set "this" -}}
+            {{- else -}}
+                {{- . | safeHTML -}}
+            {{- end -}}
+        </div>
+    {{- end -}}
+
+    {{- /* 3. 社交图标 (对齐强化版) */ -}}
+    {{- if $profile.social -}}
+        <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
-            {{- $social := index $socialMap "email" | default dict -}}
-            {{- $social = dict "Id" . | merge $social -}}
-            {{- partial "plugin/social.html" $social -}}
-        {{- end -}}
+            {{- range $key, $value := .Site.Params.social -}}
+                {{- if $value -}}
+                    {{- $keyLower := $key | lower -}}
+                    {{- $svgPath := printf "svg/%v.svg" $key -}}
+                    {{- $customSvg := resources.Get $svgPath -}}
+                    {{- if not $customSvg -}}
+                        {{- $customSvg = resources.Get (printf "svg/%v.svg" $keyLower) -}}
+                    {{- end -}}
 
-        {{- /* B. 微信 (读取 assets/svg/Wechat.svg) */ -}}
-        {{- with .Site.Params.social.Wechat -}}
-            {{- $wechatSvg := resources.Get "svg/Wechat.svg" -}}
-            {{- if $wechatSvg -}}
-                <a href="{{ .prefix }}{{ .id }}" title="微信" target="_blank" rel="noopener" class="social-icon-link">
-                    <span style="display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; overflow: visible;">
-                        <span style="transform: scale(1.15); display: flex;">{{- $wechatSvg.Content | safeHTML -}}</span>
-                    </span>
-                </a>
+                    <div class="icon-wrapper">
+                        {{- if $customSvg -}}
+                            <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me">
+                                <span class="custom-icon {{ $keyLower }}">
+                                    {{- $customSvg.Content | safeHTML -}}
+                                </span>
+                            </a>
+                        {{- else -}}
+                            {{- $social := index $socialMap $keyLower | default dict -}}
+                            {{- if reflect.IsMap $value -}}
+                                {{- $social = merge $social $value -}}
+                            {{- else if ne $value true -}}
+                                {{- $social = dict "Id" $value | merge $social -}}
+                            {{- end -}}
+                            {{- partial "plugin/social.html" $social -}}
+                        {{- end -}}
+                    </div>
+                {{- end -}}
             {{- end -}}
-        {{- end -}}
-
-        {{- /* C. 小红书 (读取 assets/svg/xhs.svg) */ -}}
-        {{- with .Site.Params.social.xhs -}}
-            {{- $xhsSvg := resources.Get "svg/xhs.svg" -}}
-            {{- if $xhsSvg -}}
-                <a href="{{ .prefix }}{{ .id }}" title="小红书" target="_blank" rel="noopener" class="social-icon-link">
-                    <span style="display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; overflow: visible;">
-                        <span style="transform: scale(2.4); transform-origin: center; display: flex;">{{- $xhsSvg.Content | safeHTML -}}</span>
-                    </span>
-                </a>
-            {{- end -}}
-        {{- end -}}
-    </div>
+        </div>
+    {{- end -}}
 </div>
 
 <style>
-    .home-profile { text-align: center; }
-    .social-icon-link { transition: transform 0.2s; }
-    .social-icon-link:hover { transform: scale(1.2); }
-    /* 修正内置 Email 图标大小 */
-    .links .social-icon i { font-size: 2.2rem !important; }
+    /* 1. 社交链接容器：确保图标行内居中 */
+    .links {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 1.2rem;
+    }
+
+    /* 2. 统一图标外框：不管是什么图标，外框必须一样大 */
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    /* 3. 修正主题自带的 FontAwesome 邮箱图标 */
+    .icon-wrapper .social-icon i {
+        font-size: 2.2rem !important; /* 强制拉大邮箱图标 */
+        display: block;
+        line-height: 2.5rem;
+    }
+
+    /* 4. 修正自定义 SVG 图标 (微信/小红书) */
+    .custom-icon {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-icon svg {
+        width: 2.2rem; /* 微信宽度与邮箱一致 */
+        height: auto;
+    }
+
+    /* 5. 针对小红书单独放大，因为它的 SVG 比例通常很小 */
+    .custom-icon.xhs svg {
+        transform: scale(2.2); 
+        transform-origin: center;
+    }
+
+    .icon-wrapper a {
+        text-decoration: none;
+        transition: transform 0.2s;
+    }
+
+    .icon-wrapper a:hover {
+        transform: scale(1.15);
+    }
 </style>
