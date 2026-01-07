@@ -37,88 +37,57 @@
         </div>
     {{- end -}}
 
-{{- if $profile.social -}}
+    {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- $socialArr := slice -}}
-            
             {{- range $key, $value := .Site.Params.social -}}
+                {{- $social := $key | lower | index $socialMap | default dict -}}
                 {{- if $value -}}
-                    {{- $keyLower := $key | lower -}}
-                    {{- $social := index $socialMap $keyLower | default dict -}}
-                    
-                    {{- /* 注入参数 */ -}}
                     {{- if reflect.IsMap $value -}}
-                        {{- $social = merge $social $value -}}
+                        {{- with $value.weight -}}
+                            {{- $social = dict "Weight" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.prefix -}}
+                            {{- $social = dict "Prefix" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.template -}}
+                            {{- $social = dict "Template" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.id -}}
+                            {{- $social = dict "Id" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.url -}}
+                            {{- $social = dict "Url" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.title -}}
+                            {{- $social = dict "Title" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.newtab -}}
+                            {{- $social = dict "Newtab" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.icon -}}
+                            {{- $social = dict "Icon" . | merge $social -}}
+                        {{- end -}}
                     {{- else if ne $value true -}}
                         {{- $social = dict "Id" $value | merge $social -}}
                     {{- end -}}
-
-                    {{- /* 核心：强制为自定义图标指定名称以便读取 SVG */ -}}
-                    {{- if or (eq $keyLower "xhs") (eq $keyLower "wechat") -}}
-                        {{- $social = dict "Icon" (dict "Name" $keyLower) | merge $social -}}
+                    {{- if $social.Icon.Simpleicons -}}
+                        {{- $prefix := ($.Scratch.Get "cdn" | default dict).simpleIconsPrefix -}}
+                        {{- $social = dict "Prefix" $prefix | dict "Icon" | merge $social -}}
                     {{- end -}}
-                    
                     {{- $socialArr = $socialArr | append $social -}}
                 {{- end -}}
             {{- end -}}
-
-            {{- /* 渲染所有社交图标 */ -}}
             {{- range sort $socialArr "Weight" -}}
-                {{- $iconName := .Icon.Name | default (.Title | lower) -}}
-                {{- $svgPath := printf "svg/%v.svg" $iconName -}}
-                {{- $customSvg := resources.Get $svgPath -}}
-
-                {{- if $customSvg -}}
-                    {{- /* 自定义图标渲染 */ -}}
-                    <a href="{{ if .Prefix }}{{ .Prefix }}{{ .Id }}{{ else if .Url }}{{ .Url }}{{ else }}{{ .Id }}{{ end }}" title="{{ .Title | default $iconName }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                        <span class="custom-icon-box {{ $iconName }}">
-                            {{- $customSvg.Content | safeHTML -}}
-                        </span>
-                    </a>
-                {{- else -}}
-                    {{- /* 主题内置图标渲染（如 Email） */ -}}
-                    {{- partial "plugin/social.html" . -}}
-                {{- end -}}
+                {{- partial "plugin/social.html" . -}}
             {{- end -}}
         </div>
     {{- end -}}
 
-<style>
-    .home-profile {
-        padding: 0 !important;
-        margin-bottom: 2rem !important;
-    }
-    .links {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 22px;
-        margin-top: 1.2rem;
-        flex-wrap: wrap;
-    }
-    .social-icon-link {
-        display: inline-flex !important;
-        align-items: center;
-        transition: transform 0.2s ease-in-out !important;
-    }
-    .social-icon-link:hover { transform: scale(1.2) !important; }
-    .social-icon-link i { font-size: 2.2rem !important; }
-
-    .custom-icon-box {
-        display: flex;
-        width: 2.6rem;
-        height: 2.6rem;
-        fill: currentColor;
-    }
-    .custom-icon-box svg { width: 100%; height: auto; }
-    
-    /* 严格维持你 17:30 的缩放倍数 */
-    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { 
-        transform: scale(2.4) !important; 
-        transform-origin: center !important; 
-    }
-    .custom-icon-box.wechat svg { 
-        transform: scale(1.15) !important; 
-    }
-</style>
+    {{- with $profile.disclaimer -}}
+        <h3 class="home-disclaimer">
+            {{- . | safeHTML -}}
+        </h3>
+    {{- end -}}
+</div>
