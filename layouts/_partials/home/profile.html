@@ -1,6 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 头像渲染逻辑 */ -}}
+    {{- /* 头像渲染 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -9,11 +9,7 @@
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
             {{- with index $menus 0 -}}
-                {{- $url := .URL | relLangURL -}}
-                {{- with .Page -}}
-                    {{- $url = .RelPermalink -}}
-                {{- end -}}
-                <a href="{{ $url }}"{{ with .Title | default .Name }} title="{{ . }}"{{ end }}{{ if (urls.Parse $url).Host }} rel="noopener noreffer" target="_blank"{{ end }}>
+                <a href="{{ .URL | relLangURL }}">
                     {{- dict "Src" $avatar | partial "plugin/image.html" -}}
                 </a>
             {{- else -}}
@@ -22,9 +18,7 @@
         </div>
     {{- end -}}
 
-    <h1 class="home-title">
-        {{- .Site.Params.home.profile.title | default .Site.Title | safeHTML -}}
-    </h1>
+    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
@@ -38,73 +32,15 @@
         </div>
     {{- end -}}
 
-    {{- /* 社交图标渲染逻辑：支持内置邮箱 + 自定义微信 */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- $keyLower := $key | lower -}}
-                    {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
+                    {{- /* 关键修改：直接使用 $key，不转小写，以匹配 Wechat.svg */ -}}
+                    {{- $svgPath := printf "svg/%v.svg" $key -}}
                     {{- $customSvg := resources.Get $svgPath -}}
                     
                     {{- if $customSvg -}}
-                        {{- /* 如果本地 assets/svg 下有 wechat.svg，直接渲染 */ -}}
-                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer" class="social-icon-link">
-                            <span class="custom-icon-box {{ $keyLower }}">
-                                {{- $customSvg.Content | safeHTML -}}
-                            </span>
-                        </a>
-                    {{- else -}}
-                        {{- /* 否则走主题默认逻辑显示 Email */ -}}
-                        {{- $social := $keyLower | index $socialMap | default dict -}}
-                        {{- if reflect.IsMap $value -}}
-                            {{- $social = merge $social $value -}}
-                        {{- else if ne $value true -}}
-                            {{- $social = dict "Id" $value | merge $social -}}
-                        {{- end -}}
-                        {{- partial "plugin/social.html" $social -}}
-                    {{- end -}}
-                {{- end -}}
-            {{- end -}}
-        </div>
-    {{- end -}}
-
-    {{- with $profile.disclaimer -}}
-        <h3 class="home-disclaimer">
-            {{- . | safeHTML -}}
-        </h3>
-    {{- end -}}
-</div>
-
-<style>
-    /* 强制图标并列居中 */
-    .links {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 22px; /* 图标之间的间距 */
-        margin-top: 1.2rem;
-        flex-wrap: wrap;
-    }
-    .social-icon-link {
-        display: inline-flex;
-        align-items: center;
-        transition: transform 0.2s ease;
-    }
-    .social-icon-link:hover {
-        transform: scale(1.15);
-    }
-    /* 自定义微信图标的尺寸与缩放 */
-    .custom-icon-box {
-        display: flex;
-        width: 1.8rem; /* 匹配内置图标大小 */
-        height: 1.8rem;
-        fill: currentColor;
-    }
-    .custom-icon-box svg {
-        width: 100%;
-        height: auto;
-        transform: scale(1.1); /* 微信图标微调 */
-    }
-</style>
+                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
+                            <span class="custom-icon-box
