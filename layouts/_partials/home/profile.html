@@ -1,6 +1,5 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 1. 头像部分 (完全原版) */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -9,16 +8,23 @@
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
             {{- with index $menus 0 -}}
-                <a href="{{ .URL | relLangURL }}">{{- dict "Src" $avatar | partial "plugin/image.html" -}}</a>
+                {{- $url := .URL | relLangURL -}}
+                {{- with .Page -}}
+                    {{- $url = .RelPermalink -}}
+                {{- end -}}
+                <a href="{{ $url }}"{{ with .Title | default .Name }} title="{{ . }}"{{ end }}{{ if (urls.Parse $url).Host }} rel="noopener noreffer" target="_blank"{{ end }}>
+                    {{- dict "Src" $avatar | partial "plugin/image.html" -}}
+                </a>
             {{- else -}}
                 {{- dict "Src" $avatar | partial "plugin/image.html" -}}
             {{- end -}}
         </div>
     {{- end -}}
 
-    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
+    <h1 class="home-title">
+        {{- .Site.Params.home.profile.title | default .Site.Title | safeHTML -}}
+    </h1>
 
-    {{- /* 2. 副标题 (完全原版) */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -31,52 +37,57 @@
         </div>
     {{- end -}}
 
-    {{- /* 3. 社交图标 (原版逻辑 + 微信 FontAwesome 补丁) */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- $socialArr := slice -}}
             {{- range $key, $value := .Site.Params.social -}}
+                {{- $social := $key | lower | index $socialMap | default dict -}}
                 {{- if $value -}}
-                    {{- $social := $key | lower | index $socialMap | default dict -}}
-                    
-                    {{- /* 补丁：如果识别到 Wechat，强制手动赋予 FontAwesome 图标属性 */ -}}
-                    {{- if eq ($key | lower) "wechat" -}}
-                        {{- $social = dict "Icon" "fa-brands fa-weixin" "Title" "Wechat" -}}
-                    {{- end -}}
-
                     {{- if reflect.IsMap $value -}}
-                        {{- $social = merge $social $value -}}
+                        {{- with $value.weight -}}
+                            {{- $social = dict "Weight" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.prefix -}}
+                            {{- $social = dict "Prefix" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.template -}}
+                            {{- $social = dict "Template" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.id -}}
+                            {{- $social = dict "Id" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.url -}}
+                            {{- $social = dict "Url" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.title -}}
+                            {{- $social = dict "Title" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.newtab -}}
+                            {{- $social = dict "Newtab" . | merge $social -}}
+                        {{- end -}}
+                        {{- with $value.icon -}}
+                            {{- $social = dict "Icon" . | merge $social -}}
+                        {{- end -}}
                     {{- else if ne $value true -}}
                         {{- $social = dict "Id" $value | merge $social -}}
+                    {{- end -}}
+                    {{- if $social.Icon.Simpleicons -}}
+                        {{- $prefix := ($.Scratch.Get "cdn" | default dict).simpleIconsPrefix -}}
+                        {{- $social = dict "Prefix" $prefix | dict "Icon" | merge $social -}}
                     {{- end -}}
                     {{- $socialArr = $socialArr | append $social -}}
                 {{- end -}}
             {{- end -}}
-
             {{- range sort $socialArr "Weight" -}}
                 {{- partial "plugin/social.html" . -}}
             {{- end -}}
         </div>
     {{- end -}}
-</div>
 
-<style>
-    /* 样式微调，确保 FontAwesome 图标和文字一样好看 */
-    .links {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        margin-top: 1.2rem;
-    }
-    .links a {
-        font-size: 2rem; /* 控制图标大小 */
-        color: inherit;
-        transition: transform 0.2s, color 0.2s;
-    }
-    .links a:hover {
-        transform: scale(1.2);
-        color: #09b83e !important; /* 悬停时变成微信绿 */
-    }
-</style>
+    {{- with $profile.disclaimer -}}
+        <h3 class="home-disclaimer">
+            {{- . | safeHTML -}}
+        </h3>
+    {{- end -}}
+</div>
