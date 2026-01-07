@@ -1,11 +1,19 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
+    {{- /* 1. 头像渲染 (原版) */ -}}
     {{- $avatar := $profile.avatarURL -}}
+    {{- with $profile.gravatarEmail -}}
+        {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
+    {{- end -}}
     {{- if $avatar -}}
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
             {{- with index $menus 0 -}}
-                <a href="{{ .URL | relLangURL }}">
+                {{- $url := .URL | relLangURL -}}
+                {{- with .Page -}}
+                    {{- $url = .RelPermalink -}}
+                {{- end -}}
+                <a href="{{ $url }}"{{ with .Title | default .Name }} title="{{ . }}"{{ end }}{{ if (urls.Parse $url).Host }} rel="noopener noreffer" target="_blank"{{ end }}>
                     {{- dict "Src" $avatar | partial "plugin/image.html" -}}
                 </a>
             {{- else -}}
@@ -14,8 +22,12 @@
         </div>
     {{- end -}}
 
-    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
+    {{- /* 2. 标题渲染 (原版) */ -}}
+    <h1 class="home-title">
+        {{- .Site.Params.home.profile.title | default .Site.Title | safeHTML -}}
+    </h1>
 
+    {{- /* 3. 副标题渲染 (原版) */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -28,75 +40,62 @@
         </div>
     {{- end -}}
 
+    {{- /* 4. 社交图标渲染 (在原版基础上增加自定义 SVG 支持) */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
+            {{- $socialArr := slice -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- $keyLower := $key | lower -}}
-                    {{- $svgPath := printf "svg/%v.svg" $keyLower -}}
-                    {{- $customSvg := resources.Get $svgPath -}}
-                    
-                    {{- if $customSvg -}}
-                        {{- /* 1. 优先渲染你自定义的微信和小红书 */ -}}
-                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                            <span class="custom-icon-box {{ $keyLower }}">
-                                {{- $customSvg.Content | safeHTML -}}
-                            </span>
-                        </a>
-                    {{- else -}}
-                        {{- /* 2. 如果没找到自定义 SVG，就去渲染内置的 Email */ -}}
-                        {{- $social := index $socialMap $keyLower | default dict -}}
-                        {{- if reflect.IsMap $value -}}
-                            {{- $social = merge $social $value -}}
-                        {{- else if ne $value true -}}
-                            {{- $social = dict "Id" $value | merge $social -}}
-                        {{- end -}}
-                        {{- if $social -}}
-                            {{- partial "plugin/social.html" $social -}}
-                        {{- end -}}
+                    {{- $social := $key | lower | index $socialMap | default dict -}}
+                    {{- if reflect.IsMap $value -}}
+                        {{- $social = merge $social $value -}}
+                    {{- else if ne $value true -}}
+                        {{- $social = dict "Id" $value | merge $social -}}
                     {{- end -}}
+                    
+                    {{- /* 注入原始 Key，方便后面找 SVG 文件 */ -}}
+                    {{- $social = dict "OriginalKey" $key | merge $social -}}
+                    {{- $socialArr = $socialArr | append $social -}}
+                {{- end -}}
+            {{- end -}}
+
+            {{- range sort $socialArr "Weight" -}}
+                {{- /* 核心修改点：先看 assets/svg 里有没有对应的文件 */ -}}
+                {{- $customSvg := resources.Get (printf "svg/%v.svg" .OriginalKey) -}}
+                {{- if not $customSvg -}}
+                    {{- $customSvg = resources.Get (printf "svg/%v.svg" (.OriginalKey | lower)) -}}
+                {{- end -}}
+
+                {{- if $customSvg -}}
+                    <a href="{{ if .Url }}{{ .Url }}{{ else }}{{ .Prefix }}{{ .Id }}{{ end }}" title="{{ .Title | default .OriginalKey }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
+                        <span class="custom-icon-box {{ .OriginalKey | lower }}">
+                            {{- $customSvg.Content | safeHTML -}}
+                        </span>
+                    </a>
+                {{- else -}}
+                    {{- /* 如果没有自定义 SVG，走原版的内置渲染 (Email 会走这里) */ -}}
+                    {{- partial "plugin/social.html" . -}}
                 {{- end -}}
             {{- end -}}
         </div>
     {{- end -}}
+
+    {{- with $profile.disclaimer -}}
+        <h3 class="home-disclaimer">{{- . | safeHTML -}}</h3>
+    {{- end -}}
 </div>
 
 <style>
-    .home-profile {
-        padding: 0 !important;
-        margin-bottom: 2rem !important;
-    }
-    .links {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 22px;
-        margin-top: 1.2rem;
-        flex-wrap: wrap;
-    }
-    .social-icon-link {
-        display: inline-flex !important;
-        align-items: center;
-        transition: transform 0.2s ease-in-out !important;
-    }
-    .social-icon-link:hover { transform: scale(1.2) !important; }
-    .social-icon-link i { font-size: 2.2rem !important; }
-
-    .custom-icon-box {
-        display: flex;
-        width: 2.6rem;
-        height: 2.6rem;
-        fill: currentColor;
-    }
+    .links { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 1.2rem; flex-wrap: wrap; }
+    .social-icon-link { display: inline-flex; align-items: center; transition: transform 0.2s; }
+    .social-icon-link:hover { transform: scale(1.15); }
+    .custom-icon-box { display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; }
     .custom-icon-box svg { width: 100%; height: auto; }
     
-    /* 严格维持你 17:30 的缩放倍数 */
-    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { 
-        transform: scale(2.4) !important; 
-        transform-origin: center !important; 
-    }
-    .custom-icon-box.wechat svg { 
-        transform: scale(1.15) !important; 
-    }
+    /* 维持你之前的缩放倍数 */
+    .custom-icon-box.xhs svg { transform: scale(2.4); transform-origin: center; }
+    .custom-icon-box.wechat svg { transform: scale(1.15); }
+    /* 统一内置 Email 大小 */
+    .links .social-icon i { font-size: 2.1rem !important; }
 </style>
