@@ -554,7 +554,11 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     # Telegram = "xxxx"
     # Bilibili = ""  
     Email = "NoCapBRB@iCloud.com"
-    Wechat = "https://mp.weixin.qq.com/s/LlT3rtsId62xkkQSgIY37Q"
+    [params.social.Wechat]
+        id = "LlT3rtsId62xkkQSgIY37Q"
+        prefix = "https://mp.weixin.qq.com/s/"
+        weight = 1
+
     # [params.social.xhs]
     #     id = "55fa010667bc65702d8d25e1"
     #     prefix = "https://www.xiaohongshu.com/user/profile/"
