@@ -1,6 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 1. 头像部分 */ -}}
+    {{- /* 1. 头像渲染 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -18,12 +18,10 @@
         </div>
     {{- end -}}
 
-    {{- /* 2. 标题部分 */ -}}
-    <h1 class="home-title">
-        {{- $profile.title | default .Site.Title | safeHTML -}}
-    </h1>
+    {{- /* 2. 标题渲染 */ -}}
+    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
-    {{- /* 3. 副标题 (Subtitle) 部分 - 找回这里 */ -}}
+    {{- /* 3. 副标题渲染 (确保显示) */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -36,16 +34,15 @@
         </div>
     {{- end -}}
 
-    {{- /* 4. 社交图标 (Email + Wechat) 部分 */ -}}
+    {{- /* 4. 社交图标渲染 (兼容 Wechat 大写和小红书) */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- /* 优先匹配大写 Wechat.svg */ -}}
+                    {{- /* 依次尝试：Wechat.svg, wechat.svg */ -}}
                     {{- $svgPath := printf "svg/%v.svg" $key -}}
                     {{- $customSvg := resources.Get $svgPath -}}
-                    
                     {{- if not $customSvg -}}
                         {{- $customSvg = resources.Get (printf "svg/%v.svg" ($key | lower)) -}}
                     {{- end -}}
@@ -57,6 +54,7 @@
                             </span>
                         </a>
                     {{- else -}}
+                        {{- /* 内置图标 (Email) */ -}}
                         {{- $social := index $socialMap ($key | lower) | default dict -}}
                         {{- if reflect.IsMap $value -}}
                             {{- $social = merge $social $value -}}
@@ -78,7 +76,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 12px; /* 已经帮你调近了间距 */
+        gap: 15px; /* 紧凑间距 */
         margin-top: 1.2rem;
     }
     .custom-icon-box {
@@ -86,6 +84,17 @@
         width: 1.8rem;
         height: 1.8rem;
         fill: currentColor;
+        align-items: center;
+        justify-content: center;
     }
-    .custom-icon-box svg { width: 100%; height: auto; transform: scale(1.1); }
+    .custom-icon-box svg { width: 100%; height: auto; }
+
+    /* 微信缩放 */
+    .custom-icon-box.wechat svg { transform: scale(1.1); }
+
+    /* 小红书专项放大 */
+    .custom-icon-box.xhs svg { 
+        transform: scale(2.4) !important; 
+        transform-origin: center !important;
+    }
 </style>
