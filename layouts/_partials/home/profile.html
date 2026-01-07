@@ -1,6 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 头像部分 */ -}}
+    {{- /* 1. 头像部分 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -18,42 +18,59 @@
         </div>
     {{- end -}}
 
-    <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
+    {{- /* 2. 标题部分 */ -}}
+    <h1 class="home-title">
+        {{- $profile.title | default .Site.Title | safeHTML -}}
+    </h1>
 
-    <div class="links">
-        {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
-        {{- range $key, $value := .Site.Params.social -}}
-            {{- if $value -}}
-                {{- /* 尝试三种路径：原始名、首字母大写、全小写 */ -}}
-                {{- $fileNames := slice $key (printf "%s%s" (substr $key 0 1 | upper) (substr $key 1)) ($key | lower) -}}
-                {{- $customSvg := false -}}
-                
-                {{- range $fileNames -}}
+    {{- /* 3. 副标题 (Subtitle) 部分 - 找回这里 */ -}}
+    {{- with $profile.subtitle -}}
+        <div class="home-subtitle">
+            {{- if $profile.typeit -}}
+                {{- $id := dict "Content" . "Scratch" $.Scratch | partial "function/id.html" -}}
+                <div id="{{ $id }}" class="typeit"></div>
+                {{- dict $id (slice $id) | dict "typeitMap" | merge ($.Scratch.Get "this") | $.Scratch.Set "this" -}}
+            {{- else -}}
+                {{- . | safeHTML -}}
+            {{- end -}}
+        </div>
+    {{- end -}}
+
+    {{- /* 4. 社交图标 (Email + Wechat) 部分 */ -}}
+    {{- if $profile.social -}}
+        <div class="links">
+            {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
+            {{- range $key, $value := .Site.Params.social -}}
+                {{- if $value -}}
+                    {{- /* 优先匹配大写 Wechat.svg */ -}}
+                    {{- $svgPath := printf "svg/%v.svg" $key -}}
+                    {{- $customSvg := resources.Get $svgPath -}}
+                    
                     {{- if not $customSvg -}}
-                        {{- $customSvg = resources.Get (printf "svg/%s.svg" .) -}}
+                        {{- $customSvg = resources.Get (printf "svg/%v.svg" ($key | lower)) -}}
                     {{- end -}}
-                {{- end -}}
-                
-                {{- if $customSvg -}}
-                    {{- /* 只有成功抓取到 SVG 对象才渲染，绝不报错 */ -}}
-                    <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                        <span class="custom-icon-box {{ $key | lower }}">
-                            {{- $customSvg.Content | safeHTML -}}
-                        </span>
-                    </a>
-                {{- else -}}
-                    {{- /* 找不到自定义文件则走内置 Email 逻辑 */ -}}
-                    {{- $social := index $socialMap ($key | lower) | default dict -}}
-                    {{- if reflect.IsMap $value -}}
-                        {{- $social = merge $social $value -}}
-                    {{- else if ne $value true -}}
-                        {{- $social = dict "Id" $value | merge $social -}}
+
+                    {{- if $customSvg -}}
+                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener" class="social-icon-link">
+                            <span class="custom-icon-box {{ $key | lower }}">
+                                {{- $customSvg.Content | safeHTML -}}
+                            </span>
+                        </a>
+                    {{- else -}}
+                        {{- $social := index $socialMap ($key | lower) | default dict -}}
+                        {{- if reflect.IsMap $value -}}
+                            {{- $social = merge $social $value -}}
+                        {{- else if ne $value true -}}
+                            {{- $social = dict "Id" $value | merge $social -}}
+                        {{- end -}}
+                        {{- if $social -}}
+                            {{- partial "plugin/social.html" $social -}}
+                        {{- end -}}
                     {{- end -}}
-                    {{- partial "plugin/social.html" $social -}}
                 {{- end -}}
             {{- end -}}
-        {{- end -}}
-    </div>
+        </div>
+    {{- end -}}
 </div>
 
 <style>
@@ -61,14 +78,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 22px;
+        gap: 12px; /* 已经帮你调近了间距 */
         margin-top: 1.2rem;
     }
     .custom-icon-box {
         display: flex;
-        width: 1.9rem;
-        height: 1.9rem;
+        width: 1.8rem;
+        height: 1.8rem;
         fill: currentColor;
     }
-    .custom-icon-box svg { width: 100%; height: auto; transform: scale(1.15); }
+    .custom-icon-box svg { width: 100%; height: auto; transform: scale(1.1); }
 </style>
