@@ -1,24 +1,16 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
     {{- /* 1. 头像 */ -}}
-    {{- $avatar := $profile.avatarURL -}}
-    {{- if $avatar -}}
-        <div class="home-avatar">
-            {{- $menus := $.Site.Menus.main | default slice -}}
-            {{- with index $menus 0 -}}
-                <a href="{{ .URL | relLangURL }}"><img src="{{ $avatar }}" alt="Avatar"></a>
-            {{- else -}}
-                <img src="{{ $avatar }}" alt="Avatar">
-            {{- end -}}
-        </div>
-    {{- end -}}
+    <div class="home-avatar">
+        <a href="/"><img src="{{ $profile.avatarURL | relURL }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;"></a>
+    </div>
 
     {{- /* 2. 标题 */ -}}
     <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
-    {{- /* 3. 副标题 (Subtitle) - 重新加固逻辑 */ -}}
+    {{- /* 3. 副标题 (Subtitle) */ -}}
     {{- if $profile.subtitle -}}
-        <div class="home-subtitle">
+        <div class="home-subtitle" style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">
             {{- if $profile.typeit -}}
                 {{- $id := dict "Content" $profile.subtitle "Scratch" $.Scratch | partial "function/id.html" -}}
                 <div id="{{ $id }}" class="typeit"></div>
@@ -29,61 +21,47 @@
         </div>
     {{- end -}}
 
-    {{- /* 4. 社交图标 (Wechat, Xhs, Email) */ -}}
-    {{- if .Site.Params.social -}}
-        <div class="links">
+    {{- /* 4. 社交图标：强制手动并排 */ -}}
+    <div class="links" style="display: flex; justify-content: center; align-items: center; gap: 18px;">
+        
+        {{- /* A. 邮箱 (主题内置) */ -}}
+        {{- with .Site.Params.social.Email -}}
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
-            {{- range $key, $value := .Site.Params.social -}}
-                {{- if $value -}}
-                    {{- /* 核心：尝试匹配 Wechat.svg 或 xhs.svg */ -}}
-                    {{- $svgPath := printf "svg/%v.svg" $key -}}
-                    {{- $customSvg := resources.Get $svgPath -}}
-                    {{- if not $customSvg -}}
-                        {{- $customSvg = resources.Get (printf "svg/%v.svg" ($key | lower)) -}}
-                    {{- end -}}
+            {{- $social := index $socialMap "email" | default dict -}}
+            {{- $social = dict "Id" . | merge $social -}}
+            {{- partial "plugin/social.html" $social -}}
+        {{- end -}}
 
-                    {{- if $customSvg -}}
-                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
-                            <span class="custom-icon-box {{ $key | lower }}">
-                                {{- $customSvg.Content | safeHTML -}}
-                            </span>
-                        </a>
-                    {{- else -}}
-                        {{- /* 如果没有本地SVG，渲染内置邮箱 */ -}}
-                        {{- $keyLower := $key | lower -}}
-                        {{- $social := index $socialMap $keyLower | default dict -}}
-                        {{- if reflect.IsMap $value -}}
-                            {{- $social = merge $social $value -}}
-                        {{- else if ne $value true -}}
-                            {{- $social = dict "Id" $value | merge $social -}}
-                        {{- end -}}
-                        {{- if $social -}}
-                            {{- partial "plugin/social.html" $social -}}
-                        {{- end -}}
-                    {{- end -}}
-                {{- end -}}
+        {{- /* B. 微信 (读取 assets/svg/Wechat.svg) */ -}}
+        {{- with .Site.Params.social.Wechat -}}
+            {{- $wechatSvg := resources.Get "svg/Wechat.svg" -}}
+            {{- if $wechatSvg -}}
+                <a href="{{ .prefix }}{{ .id }}" title="微信" target="_blank" rel="noopener" class="social-icon-link">
+                    <span style="display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; overflow: visible;">
+                        <span style="transform: scale(1.15); display: flex;">{{- $wechatSvg.Content | safeHTML -}}</span>
+                    </span>
+                </a>
             {{- end -}}
-        </div>
-    {{- end -}}
+        {{- end -}}
+
+        {{- /* C. 小红书 (读取 assets/svg/xhs.svg) */ -}}
+        {{- with .Site.Params.social.xhs -}}
+            {{- $xhsSvg := resources.Get "svg/xhs.svg" -}}
+            {{- if $xhsSvg -}}
+                <a href="{{ .prefix }}{{ .id }}" title="小红书" target="_blank" rel="noopener" class="social-icon-link">
+                    <span style="display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; overflow: visible;">
+                        <span style="transform: scale(2.4); transform-origin: center; display: flex;">{{- $xhsSvg.Content | safeHTML -}}</span>
+                    </span>
+                </a>
+            {{- end -}}
+        {{- end -}}
+    </div>
 </div>
 
 <style>
-    .home-profile { padding: 0 !important; margin-bottom: 2rem !important; text-align: center; }
-    .home-avatar img { width: 120px; height: 120px; border-radius: 50% !important; object-fit: cover; }
-    .home-title { font-size: 2rem; margin: 1rem 0 0.5rem; }
-    .home-subtitle { font-size: 1.2rem; color: #666; margin-bottom: 1rem; }
-    
-    .links {
-        display: flex; justify-content: center; align-items: center;
-        gap: 18px; margin-top: 1rem; flex-wrap: wrap;
-    }
-    .social-icon-link { display: inline-flex !important; transition: transform 0.2s; }
-    .social-icon-link:hover { transform: scale(1.15) !important; }
-    
-    .custom-icon-box { display: flex; width: 2.2rem; height: 2.2rem; fill: currentColor; }
-    .custom-icon-box svg { width: 100%; height: auto; }
-    
-    /* 缩放控制 */
-    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { transform: scale(2.4) !important; transform-origin: center !important; }
-    .custom-icon-box.wechat svg { transform: scale(1.15) !important; }
+    .home-profile { text-align: center; }
+    .social-icon-link { transition: transform 0.2s; }
+    .social-icon-link:hover { transform: scale(1.2); }
+    /* 修正内置 Email 图标大小 */
+    .links .social-icon i { font-size: 2.2rem !important; }
 </style>
