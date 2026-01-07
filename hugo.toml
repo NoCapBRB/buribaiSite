@@ -187,7 +187,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
           # 主页显示的网站标题 (支持 HTML 格式)
           title = "NoCap不日白"
           # 主页显示的网站副标题 (支持 HTML 格式)
-          subtitle = "关注 + 三连：支持作者持续更新！"
+          subtitle = "关注 + 三连：支持作者持续更新"
           # 是否为副标题显示打字机动画
           typeit = true
           # 是否显示社交账号
