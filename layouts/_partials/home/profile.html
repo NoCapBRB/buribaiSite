@@ -1,5 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
+    {{- /* 1. 头像部分：完全原版 */ -}}
     {{- $avatar := $profile.avatarURL -}}
     {{- with $profile.gravatarEmail -}}
         {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
@@ -21,10 +22,12 @@
         </div>
     {{- end -}}
 
+    {{- /* 2. 标题部分：完全原版 */ -}}
     <h1 class="home-title">
         {{- .Site.Params.home.profile.title | default .Site.Title | safeHTML -}}
     </h1>
 
+    {{- /* 3. 副标题部分：完全原版 */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -37,48 +40,39 @@
         </div>
     {{- end -}}
 
+    {{- /* 4. 社交图标部分：核心修改逻辑 */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- $socialArr := slice -}}
             {{- range $key, $value := .Site.Params.social -}}
-                {{- $social := $key | lower | index $socialMap | default dict -}}
                 {{- if $value -}}
+                    {{- /* 从 data/social.yml 获取基础数据 */ -}}
+                    {{- $social := $key | lower | index $socialMap | default dict -}}
+                    
+                    {{- /* 【核心补丁】如果识别到 Wechat 且原版数据里没定义，手动指定 FontAwesome 微信图标 */ -}}
+                    {{- if and (eq ($key | lower) "wechat") (not $social.Icon) -}}
+                        {{- $social = dict "Icon" "fa-brands fa-weixin" "Title" "WeChat" | merge $social -}}
+                    {{- end -}}
+
+                    {{- /* 原作者的合并逻辑：处理 Weight, Prefix, Id 等参数 */ -}}
                     {{- if reflect.IsMap $value -}}
-                        {{- with $value.weight -}}
-                            {{- $social = dict "Weight" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.prefix -}}
-                            {{- $social = dict "Prefix" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.template -}}
-                            {{- $social = dict "Template" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.id -}}
-                            {{- $social = dict "Id" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.url -}}
-                            {{- $social = dict "Url" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.title -}}
-                            {{- $social = dict "Title" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.newtab -}}
-                            {{- $social = dict "Newtab" . | merge $social -}}
-                        {{- end -}}
-                        {{- with $value.icon -}}
-                            {{- $social = dict "Icon" . | merge $social -}}
-                        {{- end -}}
+                        {{- with $value.weight }}{{ $social = dict "Weight" . | merge $social }}{{ end -}}
+                        {{- with $value.prefix }}{{ $social = dict "Prefix" . | merge $social }}{{ end -}}
+                        {{- with $value.id }}{{ $social = dict "Id" . | merge $social }}{{ end -}}
+                        {{- with $value.title }}{{ $social = dict "Title" . | merge $social }}{{ end -}}
+                        {{- with $value.icon }}{{ $social = dict "Icon" . | merge $social }}{{ end -}}
+                        {{- /* 合并整个 map 确保所有子项都存在 */ -}}
+                        {{- $social = merge $social $value -}}
                     {{- else if ne $value true -}}
                         {{- $social = dict "Id" $value | merge $social -}}
                     {{- end -}}
-                    {{- if $social.Icon.Simpleicons -}}
-                        {{- $prefix := ($.Scratch.Get "cdn" | default dict).simpleIconsPrefix -}}
-                        {{- $social = dict "Prefix" $prefix | dict "Icon" | merge $social -}}
-                    {{- end -}}
+                    
                     {{- $socialArr = $socialArr | append $social -}}
                 {{- end -}}
             {{- end -}}
+            
+            {{- /* 排序渲染：微信和邮箱将完美并列 */ -}}
             {{- range sort $socialArr "Weight" -}}
                 {{- partial "plugin/social.html" . -}}
             {{- end -}}
@@ -91,3 +85,24 @@
         </h3>
     {{- end -}}
 </div>
+
+<style>
+    /* 强制调整图标样式，确保微信和邮箱视觉统一 */
+    .links {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 1.2rem;
+    }
+    .links a {
+        transition: transform 0.2s ease-in-out;
+    }
+    .links a:hover {
+        transform: scale(1.15);
+        color: #09b83e !important; /* 悬停绿色，更像微信 */
+    }
+    .links i {
+        font-size: 2.1rem !important; /* 强制图标大小一致 */
+    }
+</style>
