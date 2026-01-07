@@ -59,7 +59,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
       [[languages.zh-cn.menu.main]]
         identifier = "documentation"
         pre = ""
-        name = "文档"
+        name = "全部内容"
         url = "/categories/documentation/"
         title = ""
         weight = 4
