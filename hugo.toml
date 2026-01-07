@@ -72,12 +72,12 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
         title = ""
         weight = 5
       [[languages.zh-cn.menu.main]]
-        identifier = "github"
-        pre = "<i class='fa-brands fa-github fa-fw'></i>"
+        identifier = "unknown-six"
+        pre = ""
         post = ""
-        name = ""
-        url = "https://github.com/khusika/FeelIt"
-        title = "GitHub"
+        name = "代行"
+        url = "/about/"
+        title = ""
         weight = 6
     [languages.zh-cn.pagination]
       # 默认每页列表显示的文章数目
@@ -226,7 +226,7 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
     # 页面头部导航栏标题配置
     [params.header.title]
       # LOGO 的 URL
-      logo = ""
+      logo = "/images/avatar.webp"
       # 标题名称
       name = "NoCap不日白"
       pre = ""
