@@ -1,10 +1,6 @@
 {{- $profile := .Site.Params.home.profile -}}
 <div class="home-profile">
-    {{- /* 1. 头像渲染 */ -}}
     {{- $avatar := $profile.avatarURL -}}
-    {{- with $profile.gravatarEmail -}}
-        {{- $avatar = md5 . | printf "https://www.gravatar.com/avatar/%v?s=240&d=mp" -}}
-    {{- end -}}
     {{- if $avatar -}}
         <div class="home-avatar">
             {{- $menus := $.Site.Menus.main | default slice -}}
@@ -18,10 +14,8 @@
         </div>
     {{- end -}}
 
-    {{- /* 2. 标题渲染 */ -}}
     <h1 class="home-title">{{- $profile.title | default .Site.Title | safeHTML -}}</h1>
 
-    {{- /* 3. 副标题渲染 (确保显示) */ -}}
     {{- with $profile.subtitle -}}
         <div class="home-subtitle">
             {{- if $profile.typeit -}}
@@ -34,13 +28,12 @@
         </div>
     {{- end -}}
 
-    {{- /* 4. 社交图标渲染 (兼容 Wechat 大写和小红书) */ -}}
     {{- if $profile.social -}}
         <div class="links">
             {{- $socialMap := resources.Get "data/social.yml" | transform.Unmarshal -}}
             {{- range $key, $value := .Site.Params.social -}}
                 {{- if $value -}}
-                    {{- /* 依次尝试：Wechat.svg, wechat.svg */ -}}
+                    {{- /* 尝试获取 SVG，兼容 Wechat.svg 和 xhs.svg */ -}}
                     {{- $svgPath := printf "svg/%v.svg" $key -}}
                     {{- $customSvg := resources.Get $svgPath -}}
                     {{- if not $customSvg -}}
@@ -48,13 +41,14 @@
                     {{- end -}}
 
                     {{- if $customSvg -}}
-                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener" class="social-icon-link">
+                        {{- /* 如果有文件，渲染自定义图标 (微信、小红书) */ -}}
+                        <a href="{{ if reflect.IsMap $value }}{{ $value.prefix }}{{ $value.id }}{{ else }}{{ $value }}{{ end }}" title="{{ $key }}" target="_blank" rel="noopener noreffer me" class="social-icon-link">
                             <span class="custom-icon-box {{ $key | lower }}">
                                 {{- $customSvg.Content | safeHTML -}}
                             </span>
                         </a>
                     {{- else -}}
-                        {{- /* 内置图标 (Email) */ -}}
+                        {{- /* 如果没文件，渲染内置图标 (邮箱) */ -}}
                         {{- $social := index $socialMap ($key | lower) | default dict -}}
                         {{- if reflect.IsMap $value -}}
                             {{- $social = merge $social $value -}}
@@ -72,29 +66,41 @@
 </div>
 
 <style>
+    .home-profile {
+        padding: 0 !important;
+        margin-bottom: 2rem !important;
+    }
     .links {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px; /* 紧凑间距 */
+        /* 间距调小一点点，让它们更亲密 */
+        gap: 15px;
         margin-top: 1.2rem;
+        flex-wrap: wrap;
     }
+    .social-icon-link {
+        display: inline-flex !important;
+        align-items: center;
+        transition: transform 0.2s ease-in-out !important;
+    }
+    .social-icon-link:hover { transform: scale(1.2) !important; }
+
     .custom-icon-box {
         display: flex;
-        width: 1.8rem;
-        height: 1.8rem;
+        width: 2.2rem;
+        height: 2.2rem;
         fill: currentColor;
-        align-items: center;
-        justify-content: center;
     }
     .custom-icon-box svg { width: 100%; height: auto; }
-
-    /* 微信缩放 */
-    .custom-icon-box.wechat svg { transform: scale(1.1); }
-
-    /* 小红书专项放大 */
-    .custom-icon-box.xhs svg { 
+    
+    /* 小红书缩放 */
+    .custom-icon-box.xhs svg, .custom-icon-box.xiaohongshu svg { 
         transform: scale(2.4) !important; 
-        transform-origin: center !important;
+        transform-origin: center !important; 
+    }
+    /* 微信缩放 */
+    .custom-icon-box.wechat svg { 
+        transform: scale(1.15) !important; 
     }
 </style>
