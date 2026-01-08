@@ -22,7 +22,7 @@ toc:
   auto: false
 ---
 
-本文在小红书、公众号同步发布.
+本文在[小红书]([https://gohugo.io/](https://www.xiaohongshu.com/explore/6912cc640000000005033ec7?) 、[公众号](https://mp.weixin.qq.com/s/LlT3rtsId62xkkQSgIY37Q)同步发布.
 
 <!--more-->
 
