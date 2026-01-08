@@ -22,11 +22,13 @@ toc:
   auto: false
 ---
 
-本文在[小红书](https://www.xiaohongshu.com/explore/6912cc640000000005033ec7) 、[公众号](https://mp.weixin.qq.com/s/LlT3rtsId62xkkQSgIY37Q)同步发布.
+这是作者在网站- **buribai.com** 编辑的第一篇.
+
 
 <!--more-->
 
 ## 1 准备
+本文在[小红书](https://www.xiaohongshu.com/explore/6912cc640000000005033ec7) 、[公众号](https://mp.weixin.qq.com/s/LlT3rtsId62xkkQSgIY37Q)同步发布.
 
 由于 Hugo 提供的便利性, [Hugo](https://gohugo.io/) 本身是这个主题唯一的依赖.
 
