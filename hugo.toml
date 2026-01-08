@@ -315,6 +315,9 @@ ignoreErrors = ["err-missing-comment-accesstoken", "err-missing-oembed-accesstok
   # Page config
   # 文章页面配置
   [params.page]
+    # 字数、时间
+    wordCount = false
+    readingTime = false
     # whether to hide a page from home page
     # 是否在主页隐藏一篇文章
     hiddenFromHomePage = false
