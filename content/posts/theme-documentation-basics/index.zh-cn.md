@@ -1,12 +1,12 @@
 ---
 weight: 1
-title: "主题文档 - 基本概念"
+title: "第一篇文章"
 date: 2020-03-06T21:40:32+08:00
 lastmod: 2020-03-06T21:40:32+08:00
 draft: false
-author: "FeelIt"
-authorLink: "https://feelit.khusika.id"
-description: "这里可以放小红书和公众号的链接."
+author: "NoCap不日白"
+authorLink: "https://www.xiaohongshu.com/user/profile/55fa010667bc65702d8d25e1"
+description: "本文在小红书、公众号同步发布."
 resources:
 - name: "featured-image"
   src: "featured-image.webp"
