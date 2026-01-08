@@ -6,7 +6,7 @@ lastmod: 2020-03-06T21:40:32+08:00
 draft: false
 author: "NoCap不日白"
 authorLink: "https://www.xiaohongshu.com/user/profile/55fa010667bc65702d8d25e1"
-description: "错错错错错."
+description: "第一篇文章的描述."
 resources:
 - name: "featured-image"
   src: "featured-image.webp"
@@ -22,7 +22,7 @@ toc:
   auto: false
 ---
 
-这是作者在网站- **buribai.com** 编辑的第一篇.
+这是作者在网站 **buribai.com** 编辑的第一篇.
 
 
 <!--more-->
