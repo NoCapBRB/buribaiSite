@@ -6,7 +6,7 @@ lastmod: 2020-03-06T21:40:32+08:00
 draft: false
 author: "NoCap不日白"
 authorLink: "https://www.xiaohongshu.com/user/profile/55fa010667bc65702d8d25e1"
-description: "本文在小红书、公众号同步发布."
+description: "错错错错错."
 resources:
 - name: "featured-image"
   src: "featured-image.webp"
@@ -22,7 +22,7 @@ toc:
   auto: false
 ---
 
-探索 Hugo - **FeelIt** 主题的全部内容和背后的核心概念.
+本文在小红书、公众号同步发布.
 
 <!--more-->
 
