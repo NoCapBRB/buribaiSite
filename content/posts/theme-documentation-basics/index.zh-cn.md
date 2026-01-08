@@ -6,7 +6,7 @@ lastmod: 2020-03-06T21:40:32+08:00
 draft: false
 author: "FeelIt"
 authorLink: "https://feelit.khusika.id"
-description: "探索 Hugo - FeelIt 主题的全部内容和背后的核心概念."
+description: "这里可以放小红书和公众号的链接."
 resources:
 - name: "featured-image"
   src: "featured-image.webp"
