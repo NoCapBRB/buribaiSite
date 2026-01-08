@@ -21,16 +21,6 @@ math:
 
 ### 特性
 
-#### 性能和 SEO
-
-* :(fa-solid fa-rocket fa-fw): **性能**优化：在 [Google PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights) 中， [99]/[100] 的移动设备得分和 [100]/[100] 的桌面设备得分
-* :(fa-brands fa-searchengin fa-fw): 使用基于 JSON-LD 格式 的 **SEO SCHEMA** 文件进行 SEO 优化
-* :(fa-brands fa-google fa-fw): 支持 **[Google Analytics](https://analytics.google.com/analytics)**
-* :(fa-regular fa-chart-bar fa-fw): 支持 **[Fathom Analytics](https://usefathom.com/)**
-* :(fa-solid fa-chart-line fa-fw): 支持 **[GoatCounter Analytics](https://www.goatcounter.com/)**
-* :(fa-solid fa-search fa-fw): 支持搜索引擎的**网站验证** (Google, Bind, Yandex and Baidu)
-* :(fa-solid fa-tachometer-alt fa-fw): 支持所有第三方库的 **CDN**
-* :(fa-solid fa-cloud-download-alt fa-fw): 基于 [lazysizes](https://github.com/aFarkas/lazysizes) 自动转换图片为**懒加载**
 
 #### 外观和布局
 
@@ -48,15 +38,6 @@ math:
 * :(fa-solid fa-user-circle fa-fw): 支持本地**头像**
 * :(fa-regular fa-id-card fa-fw): 支持多达 **64** 种社交链接
 * :(fa-solid fa-share-square fa-fw): 支持多达 **28** 种网站分享
-* :(fa-regular fa-comment fa-fw): 支持 **[Disqus](https://disqus.com)** 评论系统
-* :(fa-regular fa-comment-dots fa-fw): 支持 **[Gitalk](https://github.com/gitalk/gitalk)** 评论系统
-* :(fa-solid fa-comment-dots fa-fw): 支持 **[Giscus](https://giscus.app/)** 评论系统
-* :(fa-regular fa-comment-alt fa-fw): 支持 **[Valine](https://valine.js.org/)** 评论系统
-* :(fa-solid fa-comments fa-fw): 支持 **[Vssue](https://vssue.js.org/)** 评论系统
-* :(fa-regular fa-comments fa-fw): 支持 **[Facebook](https://developers.facebook.com/docs/plugins/comments/) 评论**系统
-* :(fa-solid fa-comment fa-fw): 支持 **[Telegram comments](https://comments.app/) 评论**系统
-* :(fa-solid fa-comment-dots fa-fw): 支持 **[Commento](https://commento.io/)** 评论系统
-* :(fa-regular fa-comment-alt fa-fw): 支持 **[Utterances](https://utteranc.es/)** 评论系统
 
 #### 扩展功能
 
